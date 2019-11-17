@@ -1,0 +1,372 @@
+================= DOCKER MASTERY =====================
+
+------- landscape.cncf.io ----------
+
+------- store.docker.com ---------
+
+------- docker.com/pricing --------
+
+
+======== Docker installation on Linux =========
+
+- Three ways to install docker on linux machine
+
+1) Using curl command
+$ curl -sSL https://get.docker.com/ | sh
+
+2) hub.docker.com having instrucyions to install docker
+   Through searching the docker CE for ubunutu or any operating system
+   simply follow the command form docker.docs.io (docs.docker.com)
+ - You can also get a script from get.docker.com
+   (You can also add a user
+    $ useradd ${name}
+    $ sudo usermod -aG docker ${name}
+(If you are using linux after installing docker you have to install docker machine and docker compose manually, you can get these information from 
+ docs.docker.com [Enter in product-manual tab])
+
+3) Install docker machine
+
+4) Install docker-compose
+   (You can get the links to dowload on docs.docker.com)
+
+- You can get code editor (visual studio) 
+
+- To see the colours of the shell www.bertfisher.com/shell
+
+$ docker verion
+$ docker info
+
+
+====== Starting Nginx web server =======
+
+Image v/s Container
+-Image: Image is a binaries and libraries and source code that all make up your application
+-Container: It is a running instance of an image
+
+- docker container run --publish 8080:80 --detach nginx
+  ( --publish = -p )
+  ( --detach = -d )
+
+- To see the running container we can also use
+$ docker container ls
+
+- To see all containers
+$ docker container ls -a
+
+- To stop the container 
+$ docker container stop ${container_id}
+
+- To see only stopped containers
+$ docker container ls -f 'status=exited'
+
+- To remove the stopped containers without the container ID's
+$ docker container rm $(docker container ls -q -f 'status=exited' -f 'exited=0')
+
+- One liner to stop / remove all of Docker containers:
+$ docker stop $(docker ps -a -q)
+$ docker rm $(docker ps -a -q)
+
+- To see only stopped containers
+$ docker ps -a | grep Exit
+
+- To give specific name to docker container
+$ docker run -p 8080:80 -d --name ${name} nginx
+
+- To see the logs of container
+$ docker container logs ${container_name}
+
+- To see the running process of a container
+$ docker container top ${conatiner_name}
+
+- To delete the running container (forcefully)
+$ docker container rm -f ${container_id}
+
+
+
+=== What happens when we run 'docker run' command ===
+
+1) Looks for an image locally in image cache, if doesn't find anything then
+2) looks the image locally in image repository (docker hub) and dowload that image
+3) Creates new container based on that image
+4) It gives the specific virtual IP address that's inside the Docker virtual network
+
+( To see process list of all on the system
+ Note:- ps aux
+	ps -e
+	ps -ef
+	man ps
+	To filter the search ps aux | grep ${serch_word})
+
+(WORK: Try to run mysql, 
+ hint: use -e (environment variables) to add the password)
+
+- Run mysql container with root password
+$ docker run -d -p 3306:3306 --name database -e MYSQL_RANDOM_ROOT_PASSWORD=yes mysql
+
+- Check logs for password
+$ docker logs ${container_name}
+
+- To check performance of all containers
+$ docker container stats
+
+- To enter in the conatiner and run the shell commands
+$ docker run -it --name ${new_name} nginx bash
+  [ -i = interactive
+    -t = terminal ]
+
+- You can use the terminal for the configuration of any application
+  or you can use a server over there as (ubuntu)
+
+- Run a new container from the existing image with all previous data
+$ docker start -ai ${container_name}
+  [ -a = attach
+    -i = interactive ]
+
+- To enter inside a running container without disturbing it
+$ docker exec -it ${container_name} bash
+
+  'exec' is as same as 'run' as run but it won't disturb the running container
+  'docker exec' runs an additional process on an existing container, it will not effect the root process
+
+
+==== Docker Network ====
+
+- To check which port is forwarding traffic to the container from host itself
+$ docker port ${container_name}
+
+- To get just IP Address of the container
+$ docker inspect --format '{{ .NetworkSettings.IPAddress }}' ${container_name}
+
+- Three types of network
+1) bridge: All containers are by default attached to this network
+2) host: This ia a special network that skips the virtual networking of docker and attach container directly to host interface
+3) none: This interface is not attached to anything, we can create our own network
+
+- To see the networks
+$ docker network ls
+
+- To see all the containers attached to network
+$ docker network inspect ${network_name}
+
+- To create a docker network
+$ docker network create ${network_name}
+
+- To create a new container with selected network
+$ docker run -d --name ${container_name} --network ${network_name} nginx(image_name)
+
+- To connect existing network to existing container
+$ docker network connect ${network_ID} ${container_ID}
+		 disconnect				(to disconnect)
+
+- Docker network DNS:
+  If two containers are in same virtual network then we can ping one conatiner form another
+  Regardless of the IP address they will find with the containers name
+$ docker container exec -it ${1conatiner_name} ping ${2container_name}
+
+[ERROR: OCI runtime exec failed: exec failed: container_linux.go:345: starting container process caused "exec: \"ping\": executable file not found in $PATH": unknown]
+
+
+===== IMAGE =====
+
+- An image is an orderd collection of root filesystem changes and the corresponding execution parameters for use within a conatiner runtime.
+
+- To check the layers of the image using history command
+$ docker history ${image_name}
+
+- To re-tag to an existing docker images (which is already in VM)
+$ docker image tag ${image_name}(nginx) ${new_tag}(sohail747/nginx)
+  (tag is optional)
+can see at $docker image tag --help
+
+- To push the retagged image to your docker hub repo
+$ docker image push sohail747/nginx
+  (tag is optional)
+
+Do a login to docker hub (if not logged in)
+$ docker login
+
+Can check the authentication key for the docker account which will be specific for your account, you can use the key for GUI interaction
+$ cat .docker/config.json
+
+
+===== Container lifetime & Persistent data ====
+
+- Two solutions for the persistent data
+1) Volumes
+2) Bind Mounts
+
+- Volumes need manual deletion, it can't be get deleted while deleting the container.
+
+- You can see the default volume stored of iamge and container as well
+Image: $ docker image inspect ${image_name}
+Container: $ docker container inspect ${container_name}
+
+- You can check the number of volumes as well
+$ docker volume ls
+
+- You can check the where the volume is mounted in the VM
+$ docker volume inspect ${volume_name}
+
+- You can go to the volume location and verify/check the data stored
+
+- You can map the volume while runing the container
+$ -v (new_vol_path):(default_vol_path)
+- The volume name in the volume list will be created with the new_vol_path, not with ant ID
+
+- Some times you need to create a volume ahead of creating a container (like in production)
+
+2) Bind Mounts:
+Maps a host file or directory to a container file or directory
+This we can't use in dockerfile, we must have to use at 'container run'
+
+$ docker run -d --name nginw -p 1234:80 -v $(pwd):/usr/share/nginx/html nginx
+
+/usr/share/nginx/html = volume in container, which will be copied to PWD of the VM
+So that it will be there when the container is stopped or terminated
+
+You can enter in the running container and verify or can add some files
+$ docker exec -it nginw bash
+
+[jekyll can use to make free website from docker
+ You can find more details on google about this]
+
+
+===== Docker Compose =====
+
+- There are two parts in docker compose
+1) YAML file
+2) A CLI tool docker-compose (usually used for dev/test)
+
+- The docker compose file starts with version (it is the first line of file)
+  version: 1,2,2.1,3.1,3.2
+
+- Important parts of docker-compose.yml file
+1 version
+2 services
+3 volumes
+4 networks
+
+- You can use docker-compose --help for the different options
+
+- To run the container in detach mode while building the container use
+$ docker-compose up -d
+
+- If more yaml files are there in particular folder then specify a file using "-f"
+$ docker-compose -f compose.yml up
+
+- To see all the services running in running containers
+$ docker-compose top
+
+- Adding an image to compose file:
+- It shows us to, how to add a dockerfile in the docker-compose at the time of building
+- docer-compose can build oyr images run time 
+- It will build that image only if doesn't find that image locally
+
+- If change your image and you want to build that
+$ docker-compose build (or)
+$ docker-compose up --build
+
+- To remove the image which is build from compose at the time of 'down'
+$ docker-compose dowm --rmi (local or all)
+all = all images
+local = images build by this file
+
+
+
+======= DOCKER SWARM ========
+
+- To check whether swarm is active or not
+$ docker info
+(by default docker doesn't enable the swarm features)
+
+- To enable
+$ docker swarm init
+( we will get single node swarm with all the features and functionality)
+
+- What does 'swarm init' do
+= Lots of PKI and security automation
+= Raft database created to store root CA, configs and secrets
+
+Raft = It is a protocol that actually ensures the consistency across multiple nodes.
+
+- To see the nodes
+$ docker node ls
+
+- To get a help
+$ docker node --help
+
+-- Service command in swarm
+- A 'service' command in swarm replaces the 'docker run'
+
+- To start a service 
+$ docker service create alpine ping 8.8.8.8
+
+- To list the services
+$ docker service ls
+
+- To see what is there in service
+$ docker service ps ${service_name}
+
+- To scale up the service (increase the number of service as per the requiremant)
+$ docker service update ${service_ID or name} --replicas 3 (it will create 3 replicas)
+
+- The containers will be running continously even after stopping and restarting the VM
+
+- To stop the containers permanently, stop the sevices
+$ docker service rm ${service_name}
+
+
+
+===== 3-node Swarm Cluster ======
+
+- To see the token for joining the another node
+$ docker swarm init --advertise-addr <IP address>
+
+- Add the token in a node VM so that the node will become the worker node
+
+- To get the manager token for another node ( to keep more than one manager )
+$ docker swarm join-token manager
+
+- To 'update' the node to manager (run in default manager)
+$ docker node update --role manager ${HOSTNAME} 
+
+- To create a service in a manager and run that replicas in nodes
+$ docker service create --replicas 3 alpine ping 8.8.8.8
+
+--replicas 3 : 1 for master and 2 for nodes
+
+- To check the service running in which node
+$ docker node ls ${HOSTNAME}
+
+- To see all the replicas of services
+$ docker service ps ${service_name}
+
+(** Services can be run in foreground)
+
+==== Scaling Out with Overlay Network ====
+
+Overlay is a networking driver
+It will create swarm wide bridge network
+
+- To create a overlay network for swarm
+$ docker network create --driver overlay ${network_name}
+overlay = driver name
+
+- To create a service with the created network
+$ docker service create --name psql --network ${net_name} -e POSTGRES_PASSWORD=mypasswd postgres(img_name)
+
+- To check the logs of created container
+$ docker service logs ${container_name}
+
+- To watch what the service is doing
+$ watch docker service ls
+
+- The service if is in node can easily connect with master, if that will be in same network (you can't have to specify)
+- The above is due to overlay (this is the best thing of overlay, it acts like every thing is on same subnet)
+
+- The best thing of swarm is when you download a application on one node, it can be accessible from all the other nodes IP addreses
+Even it will be installed in one node and running in only in one node
+
+
+==== Routing Mesh =====
+
