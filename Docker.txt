@@ -66,6 +66,9 @@ $ docker container rm $(docker container ls -q -f 'status=exited' -f 'exited=0')
 $ docker stop $(docker ps -a -q)
 $ docker rm $(docker ps -a -q)
 
+- To remove all images at a time
+$ docker rmi -f $(docker images -a -q)
+
 - To see only stopped containers
 $ docker ps -a | grep Exit
 
