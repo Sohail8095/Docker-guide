@@ -25,9 +25,11 @@ $ curl -sSL https://get.docker.com/ | sh
  docs.docker.com [Enter in product-manual tab])
 
 3) Install docker machine
+https://docs.docker.com/v17.09/machine/install-machine/#install-machine-directly
 
 4) Install docker-compose
    (You can get the links to dowload on docs.docker.com)
+   https://docs.docker.com/compose/install/
 
 - You can get code editor (visual studio) 
 
@@ -36,6 +38,9 @@ $ curl -sSL https://get.docker.com/ | sh
 $ docker verion
 $ docker info
 
+Use docker [TAB] to get the just supported commands
+Or
+Use docker [command] [TAB] to use the options with that particular command.
 
 ====== Starting Nginx web server =======
 
