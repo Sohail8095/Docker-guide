@@ -1,0 +1,3 @@
+https://docs.docker.com/registry/deploying/
+
+https://www.learnitguide.net/2018/07/create-your-own-private-docker-registry.html
