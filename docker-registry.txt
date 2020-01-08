@@ -1,3 +1,113 @@
 https://docs.docker.com/registry/deploying/
 
 https://www.learnitguide.net/2018/07/create-your-own-private-docker-registry.html
+
+
+== To create a private registry for docker images:
+    Make one docker host as a registry and save all the images over there, so that all other hosts (docker clients) can pull the images without having internet access.
+    This docker registry server can also be called as a centralized server for docker images.
+    
+== Install docker if it's not there
+Install docker CE (latest version)
+Install docker Machine
+Install docker Compose
+
+
+== Install Openssl to add the certificates 
+The certificates are required to get a connection with centralized server and docker clients
+
+- Install openssl
+$ apt install openssl
+
+- Make the directories to keep the certificates
+$ mkdir -p /docker_data/certs/
+
+- Install the certs
+$ openssl req -newkey rsa:4096 -nodes -sha256 -keyout /docker_data/certs/domain.key -x509 -days 365 -out /docker_data/certs/domain.crt
+
+You can leave all the sections blank, but you have to give server's hostname: [eg: example.com]
+
+- Create one more directory for saving the images
+$ mkdir -p /docker_data/images
+ 
+ == Run a docker registry container in docker host
+ 
+$ docker run -d -p 5000:5000 \
+-v /docker_data/images:/var/lib/registry \
+-v /docker_data/certs:/certs \
+-e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt \
+-e REGISTRY_HTTP_TLS_KEY=/certs/domain.key \
+--restart on-failure \
+--name registry \
+docker.io/registry:v2
+
+(You can use one more environment variable
+-e  REGISTRY_HTTP_ADDR=0.0.0.0:5000 \ )
+
+== Change the image name with the repository URL
+
+- use the tag option to rename the image
+$ docker tag ubuntu localhost:5000/my-ubuntu
+
+The name should be changed to push the image to repository 
+As starting with repo url followed by image name
+
+- Now you can push your image to private repository
+$ docker push localhost:5000/my-ubuntu
+
+- To see the saved images inside the repository:
+$ ll /docker_data/images/docker/registry/v2/repositories/
+
+
+
+==== To connect docker client with the docker host
+
+- There must be an ssh connection between the servers, so that it will be easy
+
+- Use scp command to copy and paste the code on server.
+$ scp -r /docker_data/certs/domain.crt root@{ip_address}:/root/
+
+- keep that cert in the docker directory in docker client
+- Make a directory for that
+$ mkdir -p /etc/docker/certs.d/${domain_name}:5000/
+
+- Copy the certs to the new directory
+$ cp -rf /root/domain.crt /etc/docker/certs.d/${domain_name}:5000/
+
+- Once you are connected with host with the help of certs.
+- You can pull the image from the centralized registry.
+$ docker pull ${domain_name}:5000/my-ubuntu
+
+- Now you can run these images as a container in client
+$ docker run -d -it ${domain_name}:5000/my-ubuntu bash
+
+
+=== Now the changes saved in the Image
+
+- Do changes in the container and check from running the new container
+    Run a container with the exec command and do a small changes over there, like creating a directory or creating a file. Then exit through the container and commit the changes to the repository.
+    
+- Run a container with exec command
+$ docker exec -it --name {server} ${domain_name}:5000/my-ubuntu bash
+
+- Create a directory or a file
+$ mkdir dir && touch file
+
+$ exit
+
+- Commit the new changes
+$ docker commit ${server} ${domain_name}:5000/my-ubuntu-{new}
+
+- Now push the new commited image to the server
+$ docker push ${domain_name}:5000/my-ubuntu-{new}
+
+- You can verify from docker images
+$ docker images
+
+- Even you can delete all the previous images and containers from ubuntu image.
+- And then you can pull and run the image from the registry.
+- The pulled and runned image will be with the modified changes.
+
+- You can run:
+$ docker pull ${domain_name}:5000/my-ubuntu-{new}
+$ docker run -it --name {server} ${domain_name}:5000/my-ubuntu-{new} bash
