@@ -1,0 +1,16 @@
+- To make a node as a docker swarm manager
+$ docker swarm init
+
+- To leave the node as a manager
+$ docker swarm leave
+(or)
+$ docker swarm leave --force
+
+
+- To check the health of a node
+
+(whether it is reachable)
+$ docker node inspect ${hostname} --format "{{ .ManagerStatus.Reachability }}"
+(whether it is ready)
+$ docker node inspect ${hostname} --format "{{ .Status.State }}"
+
