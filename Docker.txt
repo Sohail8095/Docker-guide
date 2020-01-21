@@ -196,6 +196,38 @@ $ docker login
 Can check the authentication key for the docker account which will be specific for your account, you can use the key for GUI interaction
 $ cat .docker/config.json
 
+- To List the full length image IDs
+$ docker images --no-trunc
+
+- To filter the images with image name
+$ docker images --filter=reference='ubuntu'
+
+- To see the history of the image
+( you will get to know which layer is added when )
+$ docker history ${image_name}
+
+
+== Saving Images and Containers as Tar Files for Sharing
+
+- docker export - Export a container’s filesystem as a tar archive
+  docker import - Import the contents from a tarball to create a filesystem image
+  docker save - Save one or more images to a tar archive (streamed to STDOUT by default)
+  docker load - Load an image from a tar archive or STDIN
+
+- Create any container from any image like nginx
+$ docker run -d -p 80:80 nginx
+
+- Export that container to tar file
+$ docker export ${container_id} > ${filename_to_save}.tar
+
+- If do "ls" can find the tar file in local
+
+- You can import that tar file from local to docker image
+$ docker import ${name_of_image_to_give} < ${saved_file}.tar
+
+- You can even save the tar file and load that whenever necessary
+$ docker save -o mynginx1.tar nginx
+$ docker load < mynginx1.tar
 
 ===== Container lifetime & Persistent data ====
 
@@ -238,6 +270,19 @@ $ docker exec -it nginw bash
 [jekyll can use to make free website from docker
  You can find more details on google about this]
 
+- To stop or kill a container
+$ docker stop ${container_name}
+$ docker kill ${container_name}
+
+- To strat or restart the container
+$ docker start ${container_name}
+$ docker restart ${container_name}
+
+- To see the running process in a container
+$ docker top ${container_name}
+
+- To follow the logs of the running container
+$ docker logs --follow ${container_name}
 
 ===== Docker Compose =====
 
