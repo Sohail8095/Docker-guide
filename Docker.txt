@@ -229,6 +229,9 @@ $ docker import ${name_of_image_to_give} < ${saved_file}.tar
 $ docker save -o mynginx1.tar nginx
 $ docker load < mynginx1.tar
 
+- Save image as a tar file
+$ docker save {image_name}:{tag_of_image} > {any_name}.tar
+
 ===== Container lifetime & Persistent data ====
 
 - Two solutions for the persistent data
